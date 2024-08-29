@@ -1,263 +1,276 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Hygiène et Sécurité Alimentaire</title>
     <style>
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f4f4f4;
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
             color: #202124;
             margin: 0;
-            padding: 40px;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
         }
+
         .container {
             background: #ffffff;
             border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(60, 64, 67, 0.3), 0 4px 8px rgba(60, 64, 67, 0.15);
-            padding: 40px;
-            max-width: 800px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 700px;
             width: 100%;
         }
+
         h1 {
-            font-size: 32px;
+            font-size: 24px;
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
             color: #1a73e8;
         }
+
         label {
-            font-size: 18px;
-            font-weight: 500;
-            margin-top: 20px;
+            font-weight: bold;
+            margin-top: 10px;
             display: block;
-            color: #3c4043;
+            color: #202124;
         }
+
         .question {
-            margin: 30px 0;
-            padding: 20px;
-            background: #f8f9fa;
+            margin: 15px 0;
+            padding: 15px;
+            background: #f1f3f4;
             border-radius: 8px;
-            border: 1px solid #dadce0;
         }
+
         .btn {
             display: block;
             width: 100%;
             background: #1a73e8;
             color: #fff;
-            padding: 14px;
+            padding: 12px;
             border: none;
             border-radius: 8px;
-            font-size: 18px;
+            font-size: 16px;
             cursor: pointer;
-            margin-top: 30px;
-            text-align: center;
+            margin-top: 20px;
         }
+
         .btn:hover {
-            background: #1765cc;
+            background: #155bb5;
         }
+
         .result {
             text-align: center;
-            font-size: 20px;
-            margin-top: 30px;
-            padding: 20px;
+            font-size: 18px;
+            margin-top: 20px;
+            padding: 15px;
             border-radius: 8px;
             display: none;
         }
+
         .success {
-            background-color: #34a853;
-            color: #fff;
+            background-color: #e6f4ea;
+            color: #1a5e20;
         }
+
         .failure {
-            background-color: #ea4335;
-            color: #fff;
+            background-color: #fce8e6;
+            color: #d93025;
         }
-        input[type="text"] {
-            font-size: 16px;
-            padding: 12px;
-            width: 100%;
-            margin-top: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #dadce0;
-            border-radius: 8px;
-            background: #ffffff;
-            color: #202124;
+
+        .form-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        input[type="radio"] {
-            margin-right: 12px;
-            cursor: pointer;
+
+        .form-group input {
+            flex: 1;
+            margin-right: 10px;
         }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <h1>Quiz Hygiène et Sécurité Alimentaire</h1>
+    <div class="container">
+        <h1>Quiz Hygiène et Sécurité Alimentaire</h1>
 
-    <form id="quizForm">
-        <label for="name">Votre nom :</label>
-        <input type="text" id="name" name="name" required>
+        <form id="quizForm">
+            <div class="form-group">
+                <div>
+                    <label for="name">Votre nom :</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div>
+                    <label for="date">Date :</label>
+                    <input type="text" id="date" name="date" placeholder="JJ/MM/AAAA" required>
+                </div>
+            </div>
 
-        <div class="question">
-            <label>1. Que signifie le sigle HACCP ?</label>
-            <input type="radio" name="q1" value="a"> a) Hazard Analysis and Critical Control Points<br>
-            <input type="radio" name="q1" value="b"> b) Health and Control of Critical Points<br>
-            <input type="radio" name="q1" value="c"> c) Hazard Assessment and Control Plan<br>
-            <input type="radio" name="q1" value="d"> d) Hazard Control and Compliance Program<br>
-        </div>
+            <div class="question">
+                <label>1. Que signifie le sigle HACCP ?</label>
+                <input type="radio" name="q1" value="a"> a) Hazard Analysis and Critical Control Points<br>
+                <input type="radio" name="q1" value="b"> b) Health and Control of Critical Points<br>
+                <input type="radio" name="q1" value="c"> c) Hazard Assessment and Control Plan<br>
+                <input type="radio" name="q1" value="d"> d) Hazard Control and Compliance Program<br>
+            </div>
 
-        <div class="question">
-            <label>2. Quel est l’objectif principal des Bonnes Pratiques de Fabrication (BPF) ?</label>
-            <input type="radio" name="q2" value="a"> a) Améliorer l'efficacité des machines<br>
-            <input type="radio" name="q2" value="b"> b) Assurer la sécurité et la qualité des produits<br>
-            <input type="radio" name="q2" value="c"> c) Réduire les coûts de production<br>
-            <input type="radio" name="q2" value="d"> d) Minimiser les déchets<br>
-        </div>
+            <div class="question">
+                <label>2. Quel est l’objectif principal des Bonnes Pratiques de Fabrication (BPF) ?</label>
+                <input type="radio" name="q2" value="a"> a) Améliorer l'efficacité des machines<br>
+                <input type="radio" name="q2" value="b"> b) Assurer la sécurité et la qualité des produits<br>
+                <input type="radio" name="q2" value="c"> c) Réduire les coûts de production<br>
+                <input type="radio" name="q2" value="d"> d) Minimiser les déchets<br>
+            </div>
 
-        <div class="question">
-            <label>3. Le stockage des aliments doit être effectué à quelle température pour les produits réfrigérés ?</label>
-            <input type="radio" name="q3" value="a"> a) Entre 0 et 4°C<br>
-            <input type="radio" name="q3" value="b"> b) Entre 4 et 8°C<br>
-            <input type="radio" name="q3" value="c"> c) Entre 8 et 12°C<br>
-            <input type="radio" name="q3" value="d"> d) Entre 12 et 16°C<br>
-        </div>
+            <div class="question">
+                <label>3. Le stockage des aliments doit être effectué à quelle température pour les produits réfrigérés ?</label>
+                <input type="radio" name="q3" value="a"> a) Entre 0 et 4°C<br>
+                <input type="radio" name="q3" value="b"> b) Entre 4 et 8°C<br>
+                <input type="radio" name="q3" value="c"> c) Entre 8 et 12°C<br>
+                <input type="radio" name="q3" value="d"> d) Entre 12 et 16°C<br>
+            </div>
 
-        <div class="question">
-            <label>4. Quel est l'agent pathogène le plus courant dans les intoxications alimentaires ?</label>
-            <input type="radio" name="q4" value="a"> a) Salmonella<br>
-            <input type="radio" name="q4" value="b"> b) Escherichia coli<br>
-            <input type="radio" name="q4" value="c"> c) Listeria<br>
-            <input type="radio" name="q4" value="d"> d) Clostridium botulinum<br>
-        </div>
+            <div class="question">
+                <label>4. Quel est l'agent pathogène le plus courant dans les intoxications alimentaires ?</label>
+                <input type="radio" name="q4" value="a"> a) Salmonella<br>
+                <input type="radio" name="q4" value="b"> b) Escherichia coli<br>
+                <input type="radio" name="q4" value="c"> c) Listeria<br>
+                <input type="radio" name="q4" value="d"> d) Clostridium botulinum<br>
+            </div>
 
-        <div class="question">
-            <label>5. Quelle est la méthode la plus efficace pour désinfecter les surfaces alimentaires ?</label>
-            <input type="radio" name="q5" value="a"> a) Laver avec de l'eau froide<br>
-            <input type="radio" name="q5" value="b"> b) Utiliser de l'eau de javel diluée<br>
-            <input type="radio" name="q5" value="c"> c) Nettoyer avec du savon antibactérien<br>
-            <input type="radio" name="q5" value="d"> d) Laisser sécher à l'air libre<br>
-        </div>
+            <div class="question">
+                <label>5. Quelle est la méthode la plus efficace pour désinfecter les surfaces alimentaires ?</label>
+                <input type="radio" name="q5" value="a"> a) Laver avec de l'eau froide<br>
+                <input type="radio" name="q5" value="b"> b) Utiliser de l'eau de javel diluée<br>
+                <input type="radio" name="q5" value="c"> c) Nettoyer avec du savon antibactérien<br>
+                <input type="radio" name="q5" value="d"> d) Laisser sécher à l'air libre<br>
+            </div>
 
-        <div class="question">
-            <label>6. Combien de temps les aliments cuits peuvent-ils être laissés à température ambiante en toute sécurité ?</label>
-            <input type="radio" name="q6" value="a"> a) Jusqu'à 2 heures<br>
-            <input type="radio" name="q6" value="b"> b) Jusqu'à 4 heures<br>
-            <input type="radio" name="q6" value="c"> c) Jusqu'à 6 heures<br>
-            <input type="radio" name="q6" value="d"> d) Jusqu'à 8 heures<br>
-        </div>
+            <div class="question">
+                <label>6. Combien de temps les aliments cuits peuvent-ils être laissés à température ambiante en toute sécurité ?</label>
+                <input type="radio" name="q6" value="a"> a) Jusqu'à 2 heures<br>
+                <input type="radio" name="q6" value="b"> b) Jusqu'à 4 heures<br>
+                <input type="radio" name="q6" value="c"> c) Jusqu'à 6 heures<br>
+                <input type="radio" name="q6" value="d"> d) Jusqu'à 8 heures<br>
+            </div>
 
-        <div class="question">
-            <label>7. Lequel de ces éléments n'est pas un allergène alimentaire courant ?</label>
-            <input type="radio" name="q7" value="a"> a) Arachides<br>
-            <input type="radio" name="q7" value="b"> b) Œufs<br>
-            <input type="radio" name="q7" value="c"> c) Lait<br>
-            <input type="radio" name="q7" value="d"> d) Riz<br>
-        </div>
+            <div class="question">
+                <label>7. Quel est le meilleur indicateur de la fraîcheur d'un aliment périssable ?</label>
+                <input type="radio" name="q7" value="a"> a) L'apparence<br>
+                <input type="radio" name="q7" value="b"> b) L'odeur<br>
+                <input type="radio" name="q7" value="c"> c) La température de stockage<br>
+                <input type="radio" name="q7" value="d"> d) La date limite de consommation<br>
+            </div>
 
-        <div class="question">
-            <label>8. Quel est le but de la traçabilité des aliments ?</label>
-            <input type="radio" name="q8" value="a"> a) Réduire les coûts de production<br>
-            <input type="radio" name="q8" value="b"> b) Augmenter la durée de conservation<br>
-            <input type="radio" name="q8" value="c"> c) Identifier et localiser les produits défectueux<br>
-            <input type="radio" name="q8" value="d"> d) Faciliter l'importation/exportation<br>
-        </div>
+            <div class="question">
+                <label>8. Quel type d'eau est recommandé pour laver les fruits et légumes ?</label>
+                <input type="radio" name="q8" value="a"> a) Eau distillée<br>
+                <input type="radio" name="q8" value="b"> b) Eau tiède<br>
+                <input type="radio" name="q8" value="c"> c) Eau potable<br>
+                <input type="radio" name="q8" value="d"> d) Eau bouillante<br>
+            </div>
 
-        <div class="question">
-            <label>9. Quelle est la température idéale pour conserver les aliments surgelés ?</label>
-            <input type="radio" name="q9" value="a"> a) -10°C<br>
-            <input type="radio" name="q9" value="b"> b) -18°C<br>
-            <input type="radio" name="q9" value="c"> c) -25°C<br>
-            <input type="radio" name="q9" value="d"> d) -32°C<br>
-        </div>
+            <div class="question">
+                <label>9. Qu'est-ce qu'un allergène alimentaire ?</label>
+                <input type="radio" name="q9" value="a"> a) Une substance ajoutée pour améliorer la saveur<br>
+                <input type="radio" name="q9" value="b"> b) Une protéine qui peut provoquer une réaction allergique<br>
+                <input type="radio" name="q9" value="c"> c) Un agent de conservation<br>
+                <input type="radio" name="q9" value="d"> d) Un ingrédient utilisé dans les aliments biologiques<br>
+            </div>
 
-        <div class="question">
-            <label>10. Que doit-on faire en premier lieu lors d'une suspicion d'intoxication alimentaire ?</label>
-            <input type="radio" name="q10" value="a"> a) Identifier la source<br>
-            <input type="radio" name="q10" value="b"> b) Isoler les aliments contaminés<br>
-            <input type="radio" name="q10" value="c"> c) Avertir les autorités sanitaires<br>
-            <input type="radio" name="q10" value="d"> d) Éliminer immédiatement les produits suspects<br>
-        </div>
+            <div class="question">
+                <label>10. Quelle est la première étape à suivre en cas de contamination alimentaire suspectée ?</label>
+                <input type="radio" name="q10" value="a"> a) Isoler et marquer les produits suspects<br>
+                <input type="radio" name="q10" value="b"> b) Continuer la production en surveillant de près<br>
+                <input type="radio" name="q10" value="c"> c) Diluer la contamination avec d'autres ingrédients<br>
+                <input type="radio" name="q10" value="d"> d) Augmenter la température de stockage<br>
+            </div>
 
-        <button type="button" class="btn" onclick="submitQuiz()">Soumettre</button>
-    </form>
+            <button type="button" class="btn" onclick="submitQuiz()">Soumettre</button>
+        </form>
 
-    <div id="result" class="result"></div>
-</div>
+        <div id="result" class="result"></div>
+    </div>
 
-<!-- Inclure la bibliothèque EmailJS -->
-<script type="text/javascript" src="https://cdn.emailjs.com/dist/email.min.js"></script>
-<script type="text/javascript">
-    (function() {
-        emailjs.init("votre_utilisateur_id"); // Remplacez par votre utilisateur ID EmailJS
-    })();
-</script>
+    <!-- Inclure la bibliothèque EmailJS -->
+    <script type="text/javascript" src="https://cdn.emailjs.com/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function () {
+            emailjs.init("votre_utilisateur_id"); // Remplacez par votre utilisateur ID EmailJS
+        })();
+    </script>
 
-<script>
-function submitQuiz() {
-    var score = 0;
-    var totalQuestions = 10;
-    var name = document.getElementById("name").value;
-    var date = new Date().toLocaleDateString(); // Capture la date du jour
-    
-    var answers = {
-        q1: "a",
-        q2: "b",
-        q3: "a",
-        q4: "a",
-        q5: "b",
-        q6: "a",
-        q7: "d",
-        q8: "c",
-        q9: "b",
-        q10: "a"
-    };
+    <script>
+        function submitQuiz() {
+            var score = 0;
+            var totalQuestions = 10;
+            var name = document.getElementById("name").value;
+            var date = document.getElementById("date").value;
 
-    for (var q in answers) {
-        var radios = document.getElementsByName(q);
-        for (var i = 0; i < radios.length; i++) {
-            if (radios[i].checked && radios[i].value === answers[q]) {
-                score++;
-                break;
+            var answers = {
+                q1: "a",
+                q2: "b",
+                q3: "a",
+                q4: "a",
+                q5: "b",
+                q6: "a",
+                q7: "d",
+                q8: "c",
+                q9: "b",
+                q10: "a"
+            };
+
+            for (var q in answers) {
+                var radios = document.getElementsByName(q);
+                for (var i = 0; i < radios.length; i++) {
+                    if (radios[i].checked && radios[i].value === answers[q]) {
+                        score++;
+                        break;
+                    }
+                }
             }
+
+            var result = document.getElementById("result");
+            result.style.display = "block";
+            if (score === totalQuestions) {
+                result.className = "result success";
+                result.innerHTML = "Excellent travail ! Vous avez obtenu " + score + " sur " + totalQuestions + "!";
+            } else if (score >= 7) {
+                result.className = "result success";
+                result.innerHTML = "Bon travail ! Vous avez obtenu " + score + " sur " + totalQuestions + ".";
+            } else {
+                result.className = "result failure";
+                result.innerHTML = "Vous avez obtenu " + score + " sur " + totalQuestions + ". Continuez à vous améliorer!";
+            }
+
+            // Envoyer un email avec les détails du résultat
+            sendEmail(name, date, score, totalQuestions);
         }
-    }
 
-    var result = document.getElementById("result");
-    result.style.display = "block";
-    if (score === totalQuestions) {
-        result.className = "result success";
-        result.innerHTML = "Excellent travail ! Vous avez obtenu " + score + " sur " + totalQuestions + "!";
-    } else if (score >= 7) {
-        result.className = "result success";
-        result.innerHTML = "Bon travail ! Vous avez obtenu " + score + " sur " + totalQuestions + ".";
-    } else {
-        result.className = "result failure";
-        result.innerHTML = "Vous avez obtenu " + score + " sur " + totalQuestions + ". Continuez à vous améliorer!";
-    }
-
-    // Envoyer un email avec les détails du résultat
-    sendEmail(name, date, score, totalQuestions);
-}
-
-function sendEmail(name, date, score, totalQuestions) {
-    // Utiliser EmailJS pour envoyer l'email
-    emailjs.send("service_id", "template_id", {
-        name: name,
-        date: date,
-        score: score,
-        totalQuestions: totalQuestions
-    })
-    .then(function(response) {
-        console.log('Email envoyé avec succès!', response.status, response.text);
-    }, function(error) {
-        console.log('Erreur lors de l\'envoi de l\'email:', error);
-    });
-}
-</script>
+        function sendEmail(name, date, score, totalQuestions) {
+            emailjs.send("service_id", "template_id", {
+                name: name,
+                date: date,
+                score: score,
+                totalQuestions: totalQuestions,
+                email: "modjibconsulting@gmail.com"
+            })
+                .then(function (response) {
+                    console.log('Email envoyé avec succès!', response.status, response.text);
+                }, function (error) {
+                    console.log('Erreur lors de l\'envoi de l\'email:', error);
+                });
+        }
+    </script>
 
 </body>
+
 </html>
