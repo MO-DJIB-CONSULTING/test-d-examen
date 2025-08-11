@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Facturier Pro — Générateur de Facture (All-in-one)</title>
+  <meta name="description" content="Application de facturation locale avec clients, produits, barcode, QR, exports PDF/Word/Excel, signature, modèles, PWA et plus." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Libs -->
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#f5f7fb; --card:#fff; --muted:#6b7280; --primary:#0ea5e9; --accent:#0f172a; --success:#16a34a; --danger:#ef4444;
+      --radius:12px; --glass: rgba(255,255,255,0.6);
+    }
+    *{box-sizing:border-box}
+    body{font-family:'Inter',system-ui,Arial,sans-serif;background:var(--bg);margin:0;color:var(--accent);}
+    header{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;background:linear-gradient(90deg,#0ea5e9 0%, #06b6d4 100%);color:white}
+    header h1{margin:0;font-size:20px}
+    header .brand-sub{font-size:12px;opacity:.9}
+    .container{max-width:1200px;margin:22px auto;padding:0 16px}
+    .layout{display:grid;grid-template-columns:360px 1fr;gap:18px}
+    .card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 6px 20px rgba(12,18,31,0.08)}
+    .small{font-size:13px;color:var(--muted)}
+    label{display:block;margin-top:12px;font-weight:600}
+    input[type=text], input[type=number], input[type=date], textarea, select{width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef8;margin-top:6px;font-size:14px}
+    textarea{min-height:72px}
+    button{background:var(--primary);border:0;color:white;padding:10px 12px;border-radius:8px;cursor:pointer;font-weight:700}
+    button.ghost{background:transparent;color:var(--primary);border:1px solid rgba(15,23,42,0.06)}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .muted{color:var(--muted)}
+
+    /* Clients / Products list */
+    .list{max-height:320px;overflow:auto;margin-top:10px}
+    .list-item{display:flex;justify-content:space-between;padding:10px;border-radius:8px;border:1px solid #f1f5f9;margin-bottom:8px}
+    .list-item .meta{font-size:13px}
+
+    /* Invoice area */
+    .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .invoice-area{padding:18px}
+    .invoice-head{display:flex;justify-content:space-between;gap:10px}
+    .company{font-weight:800;font-size:18px}
+    .invoice-meta{background:linear-gradient(180deg,#f8fafc,#ffffff);padding:12px;border-radius:10px;border:1px solid #eef2f7;text-align:right}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:10px;border-bottom:1px dashed #eef2f7}
+    th{background:#f8fafc;text-align:left}
+    .right{text-align:right}
+    .total-row{font-weight:800}
+
+    /* responsive */
+    @media(max-width:980px){.layout{grid-template-columns:1fr}.container{padding:0 12px}}
+
+    /* modal simple */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,0.45);display:none;align-items:center;justify-content:center}
+    .modal{background:var(--card);padding:16px;border-radius:12px;max-width:720px;width:100%}
+    .flex{display:flex;gap:8px;align-items:center}
+    .chip{background:#eef2ff;padding:6px 8px;border-radius:8px;font-weight:600;color:#0f172a}
+    footer{padding:18px;text-align:center;color:var(--muted);font-size:13px}
+
+    /* print optimization */
+    @media print{
+      header, .no-print{display:none}
+      .card{box-shadow:none;border-radius:0}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Facturier Pro</h1>
+      <div class="brand-sub">Application locale — Mo-Djib Consulting</div>
+    </div>
+    <div class="small">Version: 1.0 • Local-first • Offline-ready</div>
+  </header>
+
+  <div class="container">
+    <div class="layout">
+      <!-- LEFT: Settings, Clients, Products -->
+      <aside class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-weight:800">Paramètres société</div>
+            <div class="small">Infos par défaut pour les factures</div>
+          </div>
+          <div class="chip">Local</div>
+        </div>
+
+        <label>Nom société</label>
+        <input id="cfg_company" value="Mo-Djib Consulting" />
+        <label>Adresse</label>
+        <textarea id="cfg_address">Rue Exemple, Djibouti</textarea>
+        <label>TVA par défaut (%)</label>
+        <input id="cfg_tax" type="number" value="10" />
+        <label>Devise</label>
+        <select id="cfg_currency"><option value="DJF">DJF</option><option value="EUR">EUR</option><option value="USD">USD</option></select>
+
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button id="btn-save-settings" class="ghost">Sauvegarder</button>
+          <button id="btn-reset-settings">Réinitialiser</button>
+        </div>
+
+        <hr style="margin:14px 0">
+
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-weight:800">Clients</div>
+          <button id="btn-add-client" class="ghost">+ Client</button>
+        </div>
+        <input id="searchClients" placeholder="Rechercher client..." style="margin-top:8px;padding:8px;border-radius:8px;border:1px solid #eef2f7" />
+        <div id="clientsList" class="list"></div>
+
+        <hr style="margin:14px 0">
+
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-weight:800">Produits & Services</div>
+          <button id="btn-add-product" class="ghost">+ Produit</button>
+        </div>
+        <input id="searchProducts" placeholder="Rechercher produit..." style="margin-top:8px;padding:8px;border-radius:8px;border:1px solid #eef2f7" />
+        <div id="productsList" class="list"></div>
+
+        <hr style="margin:14px 0">
+        <div class="small">Sauvegarde locale: IndexedDB</div>
+        <div style="margin-top:8px;display:flex;gap:6px">
+          <button id="btn-export-json" class="ghost">Exporter JSON</button>
+          <button id="btn-import-json" class="ghost">Importer JSON</button>
+        </div>
+        <input type="file" id="fileImport" style="display:none" accept="application/json" />
+      </aside>
+
+      <!-- RIGHT: Invoice editor & preview -->
+      <main>
+        <div class="card">
+          <div class="toolbar">
+            <div>
+              <div style="font-weight:800;font-size:18px">Nouvelle facture</div>
+              <div class="small">Créez, éditez et exportez — tout localement</div>
+            </div>
+            <div class="actions no-print">
+              <button id="btn-theme">Thème</button>
+              <button id="btn-save-draft">Enregistrer brouillon</button>
+              <button id="btn-load-draft">Charger brouillon</button>
+              <button id="btn-download-pdf">Télécharger PDF</button>
+              <button id="btn-download-word">Télécharger Word</button>
+              <button id="btn-download-xlsx">Télécharger Excel</button>
+            </div>
+          </div>
+
+          <div class="invoice-area">
+            <div class="invoice-head">
+              <div>
+                <div class="company" id="inv_company">Mo-Djib Consulting</div>
+                <div class="small" id="inv_company_addr">Rue Exemple, Djibouti</div>
+              </div>
+              <div class="invoice-meta">
+                <div><label>Facture n°</label><input id="inv_number" type="text" value="FAC-2025-001" /></div>
+                <div style="margin-top:6px"><label>Date</label><input id="inv_date" type="date" /></div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:12px;margin-top:12px;align-items:flex-start">
+              <div style="flex:1">
+                <label>Client</label>
+                <select id="inv_client"><option value="">-- Choisir client --</option></select>
+                <div class="small" id="inv_client_addr" style="margin-top:6px"></div>
+              </div>
+              <div style="width:220px">
+                <label>Logo (drag & drop)</label>
+                <div id="logoDrop" style="height:90px;border-radius:8px;border:1px dashed #e6eef8;display:flex;align-items:center;justify-content:center;">Glisser déposer ou cliquer</div>
+                <input type="file" id="logoInput" accept="image/*" style="display:none" />
+              </div>
+            </div>
+
+            <div style="margin-top:12px">
+              <label>Lignes</label>
+              <table id="linesTable">
+                <thead><tr><th style="width:42%">Description</th><th style="width:12%">Qté</th><th style="width:18%">PU</th><th style="width:12%">TVA</th><th style="width:10%" class="right">Total</th><th style="width:6%"> </th></tr></thead>
+                <tbody></tbody>
+              </table>
+              <div style="margin-top:8px;display:flex;gap:8px">
+                <button id="btn-add-line" class="ghost">+ Ajouter ligne</button>
+                <input id="quickAdd" placeholder="Rechercher produit ou saisir 'desc|qty|pu'" style="flex:1;padding:8px;border-radius:8px;border:1px solid #eef2f7" />
+                <button id="btn-quick-add">Ajouter</button>
+              </div>
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;margin-top:12px;gap:12px;align-items:center">
+              <div style="width:320px;background:#fbfbff;padding:10px;border-radius:10px;border:1px solid #eef2f7">
+                <div style="display:flex;justify-content:space-between"><div class="small">Sous-total</div><div id="sum_sub" class="right">0</div></div>
+                <div style="display:flex;justify-content:space-between;margin-top:6px"><div class="small">Remise</div><div><input id="inv_discount" type="number" value="0" style="width:90px;text-align:right"/> €</div></div>
+                <div style="display:flex;justify-content:space-between;margin-top:6px"><div class="small">TVA</div><div id="sum_tax" class="right">0</div></div>
+                <hr>
+                <div style="display:flex;justify-content:space-between;font-weight:800"><div>Total TTC</div><div id="sum_total" class="right">0</div></div>
+              </div>
+            </div>
+
+            <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+              <div>
+                <label>QR/Code (lien / paiement)</label>
+                <input id="qrText" placeholder="https://... ou texte" />
+              </div>
+              <div style="width:180px">
+                <label>Signature</label>
+                <div id="sigWrap" style="border:1px dashed #e6eef8;border-radius:8px;height:70px;display:flex;align-items:center;justify-content:center;">Signer ici</div>
+              </div>
+            </div>
+
+            <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+              <div class="small">Notes</div>
+              <div style="display:flex;gap:8px">
+                <button id="btn-generate-preview">Mettre à jour aperçu</button>
+                <button id="btn-export-json" class="ghost">Export JSON</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Preview Card -->
+        <div class="card" style="margin-top:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-weight:800">Aperçu facture</div>
+            <div class="small">Modifiable: cliquez dans le texte puis 'Mettre à jour aperçu' pour synchroniser</div>
+          </div>
+
+          <div id="preview" style="margin-top:12px;padding:12px;border-radius:8px;background:linear-gradient(180deg,#ffffff,#fbfdff);">
+            <!-- Dynamic invoice preview will be injected here -->
+          </div>
+        </div>
+
+      </main>
+    </div>
+
+    <footer>
+      <div>Made with ❤️ — Mo-Djib Consulting — Local-first invoice tool. Pour aller en production, migrer le backend et sécuriser les clés.</div>
+    </footer>
+  </div>
+
+  <!-- Modal backdrop -->
+  <div id="modal" class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"></div></div>
+
+  <script>
+  /* ---------- Utilities ---------- */
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+  const fmt = (n) => new Intl.NumberFormat('fr-FR').format(Number(n||0));
+
+  /* ---------- Simple local DB using IndexedDB ---------- */
+  const DB = (function(){
+    const DBNAME = 'facturier_pro_db_v1';
+    const DBVERSION = 1;
+    let db;
+    function open(){
+      return new Promise((res,rej)=>{
+        const r = indexedDB.open(DBNAME, DBVERSION);
+        r.onupgradeneeded = e => {
+          const idb = e.target.result;
+          if(!idb.objectStoreNames.contains('clients')) idb.createObjectStore('clients',{keyPath:'id'});
+          if(!idb.objectStoreNames.contains('products')) idb.createObjectStore('products',{keyPath:'id'});
+          if(!idb.objectStoreNames.contains('invoices')) idb.createObjectStore('invoices',{keyPath:'id'});
+          if(!idb.objectStoreNames.contains('meta')) idb.createObjectStore('meta',{keyPath:'key'});
+        }
+        r.onsuccess = e => { db = e.target.result; res(db); }
+        r.onerror = e => rej(e);
+      })
+    }
+    function tx(store, mode='readonly'){
+      return db.transaction(store, mode).objectStore(store);
+    }
+    async function ensure(){ if(!db) await open(); }
+    return {
+      async getAll(store){ await ensure(); return new Promise((res,rej)=>{ const arr=[]; const cur = db.transaction(store).objectStore(store).openCursor(); cur.onsuccess = e => { const c = e.target.result; if(c){ arr.push(c.value); c.continue(); } else res(arr) }; cur.onerror = e => rej(e)}); },
+      async put(store, obj){ await ensure(); return new Promise((res,rej)=>{ const r = db.transaction(store,'readwrite').objectStore(store).put(obj); r.onsuccess =()=>res(obj); r.onerror = e => rej(e); })},
+      async delete(store, key){ await ensure(); return new Promise((res,rej)=>{ const r = db.transaction(store,'readwrite').objectStore(store).delete(key); r.onsuccess =()=>res(); r.onerror = e => rej(e); })},
+      async get(store,key){ await ensure(); return new Promise((res,rej)=>{ const r = db.transaction(store).objectStore(store).get(key); r.onsuccess = e=>res(e.target.result); r.onerror = e=>rej(e) })}
+    }
+  })();
+
+  /* ---------- State ---------- */
+  const state = {clients:[], products:[], invoices:[], meta:{}};
+
+  /* ---------- Helpers: UUID & dates ---------- */
+  function uid(prefix='id'){
+    return prefix + '_' + Math.random().toString(36).slice(2,9);
+  }
+  function todayISO(){ const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0,10); }
+
+  /* ---------- Init UI elements ---------- */
+  const clientsList = $('#clientsList');
+  const productsList = $('#productsList');
+  const inv_client = $('#inv_client');
+  const inv_company = $('#inv_company');
+  const inv_company_addr = $('#inv_company_addr');
+  const inv_number = $('#inv_number');
+  const inv_date = $('#inv_date');
+  const linesTableBody = $('#linesTable tbody');
+  const sum_sub = $('#sum_sub');
+  const sum_tax = $('#sum_tax');
+  const sum_total = $('#sum_total');
+  const inv_discount = $('#inv_discount');
+  const preview = $('#preview');
+  const logoDrop = $('#logoDrop');
+  const logoInput = $('#logoInput');
+  const sigWrap = $('#sigWrap');
+
+  /* ---------- Load initial metadata ---------- */
+  async function loadMeta(){
+    const saved = await DB.get('meta','settings').catch(()=>null);
+    if(saved) Object.assign(state.meta, saved.value);
+    // populate defaults
+    $('#cfg_company').value = state.meta.company || 'Mo-Djib Consulting';
+    $('#cfg_address').value = state.meta.address || 'Rue Exemple, Djibouti';
+    $('#cfg_tax').value = state.meta.tax || 10;
+    $('#cfg_currency').value = state.meta.currency || 'DJF';
+  }
+
+  /* ---------- Client & Product CRUD + UI ---------- */
+  function renderClients(){
+    clientsList.innerHTML = '';
+    state.clients.forEach(c=>{
+      const div = document.createElement('div'); div.className='list-item';
+      div.innerHTML = `<div><div style="font-weight:700">${c.name}</div><div class='small'>${c.email||''} ${c.phone?('• '+c.phone):''}</div></div><div style='display:flex;flex-direction:column;gap:6px'><button data-id='${c.id}' class='select-client ghost'>Choisir</button><button data-id='${c.id}' class='edit-client ghost'>Éditer</button></div>`;
+      clientsList.appendChild(div);
+    })
+    // populate select
+    inv_client.innerHTML = '<option value="">-- Choisir client --</option>' + state.clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  }
+  function renderProducts(){
+    productsList.innerHTML = '';
+    state.products.forEach(p=>{
+      const div = document.createElement('div'); div.className='list-item';
+      div.innerHTML = `<div><div style="font-weight:700">${p.name}</div><div class='small'>SKU: ${p.sku||'-'} • TVA: ${p.tax||$('#cfg_tax').value}%</div></div><div style='display:flex;flex-direction:column;gap:6px'><button data-id='${p.id}' class='select-product ghost'>Ajouter</button><button data-id='${p.id}' class='edit-product ghost'>Éditer</button></div>`;
+      productsList.appendChild(div);
+    })
+  }
+
+  /* ---------- Modals ---------- */
+  function openModal(html){ const modal = $('#modal'); modal.style.display='flex'; modal.querySelector('.modal').innerHTML = html; }
+  function closeModal(){ $('#modal').style.display='none'; $('#modal .modal').innerHTML = ''; }
+  $('#modal').addEventListener('click', (e)=>{ if(e.target.id==='modal') closeModal(); })
+
+  /* ---------- Create / Edit Client ---------- */
+  async function showClientEditor(client){
+    const isNew = !client;
+    const c = client || {id:uid('cli'), name:'', email:'', phone:'', address:''};
+    openModal(`<div><h3>${isNew?'Nouveau client':'Modifier client'}</h3>
+      <label>Nom</label><input id='m_name' value='${c.name}' />
+      <label>Email</label><input id='m_email' value='${c.email||''}' />
+      <label>Téléphone</label><input id='m_phone' value='${c.phone||''}' />
+      <label>Adresse</label><textarea id='m_addr'>${c.address||''}</textarea>
+      <div style='margin-top:10px;display:flex;gap:8px'><button id='m_save'>Enregistrer</button><button id='m_cancel' class='ghost'>Annuler</button></div></div>`);
+    $('#m_cancel').addEventListener('click', closeModal);
+    $('#m_save').addEventListener('click', async ()=>{
+      c.name = $('#m_name').value.trim(); c.email = $('#m_email').value.trim(); c.phone = $('#m_phone').value.trim(); c.address = $('#m_addr').value.trim();
+      await DB.put('clients', c); state.clients = (await DB.getAll('clients')).sort((a,b)=>a.name.localeCompare(b.name)); renderClients(); closeModal();
+    })
+  }
+
+  /* ---------- Create / Edit Product ---------- */
+  async function showProductEditor(product){
+    const isNew = !product;
+    const p = product || {id:uid('prd'), sku:'', name:'', pu:0, tax:$('#cfg_tax').value||10, stock:null};
+    openModal(`<div><h3>${isNew?'Nouveau produit':'Modifier produit'}</h3>
+      <label>Nom / Description</label><input id='p_name' value='${p.name}' />
+      <label>SKU</label><input id='p_sku' value='${p.sku||''}' />
+      <label>Prix unitaire</label><input id='p_pu' value='${p.pu||0}' />
+      <label>TVA (%)</label><input id='p_tax' value='${p.tax||$('#cfg_tax').value}' />
+      <label>Stock (optionnel)</label><input id='p_stock' value='${p.stock||''}' />
+      <div style='margin-top:10px;display:flex;gap:8px'><button id='p_save'>Enregistrer</button><button id='p_cancel' class='ghost'>Annuler</button></div></div>`);
+    $('#p_cancel').addEventListener('click', closeModal);
+    $('#p_save').addEventListener('click', async ()=>{
+      p.name = $('#p_name').value.trim(); p.sku = $('#p_sku').value.trim(); p.pu = Number($('#p_pu').value||0); p.tax = Number($('#p_tax').value||0); p.stock = $('#p_stock').value?Number($('#p_stock').value):null;
+      await DB.put('products', p); state.products = (await DB.getAll('products')).sort((a,b)=>a.name.localeCompare(b.name)); renderProducts(); closeModal();
+    })
+  }
+
+  /* ---------- Lines handling ---------- */
+  function createLineRow(line){
+    const tr = document.createElement('tr');
+    tr.dataset.id = line.id || uid('line');
+    tr.innerHTML = `<td><input class='ln_desc' value='${line.description||''}' style='width:100%' /></td>
+      <td><input class='ln_qty' type='number' value='${line.qty||1}' style='width:100%'/></td>
+      <td><input class='ln_pu' type='number' value='${line.pu||0}' style='width:100%'/></td>
+      <td><input class='ln_tax' type='number' value='${line.tax||$('#cfg_tax').value||0}' style='width:100%'/></td>
+      <td class='right ln_total'>0</td>
+      <td><button class='btn-remove-line ghost'>✖</button></td>`;
+    // events
+    tr.querySelectorAll('input').forEach(inp=>inp.addEventListener('input', computeTotals));
+    tr.querySelector('.btn-remove-line').addEventListener('click', ()=>{ tr.remove(); computeTotals(); });
+    return tr;
+  }
+  function addLine(line){ linesTableBody.appendChild(createLineRow(line)); computeTotals(); }
+
+  /* ---------- Quick product search / add ---------- */
+  function productSearch(term){
+    const t = term.toLowerCase();
+    return state.products.filter(p=> (p.name||'').toLowerCase().includes(t) || (p.sku||'').toLowerCase().includes(t));
+  }
+
+  /* ---------- Compute totals ---------- */
+  function computeTotals(){
+    const rows = Array.from(linesTableBody.querySelectorAll('tr'));
+    let sub=0, taxSum=0;
+    rows.forEach(r=>{
+      const qty = Number(r.querySelector('.ln_qty').value||0);
+      const pu = Number(r.querySelector('.ln_pu').value||0);
+      const tax = Number(r.querySelector('.ln_tax').value||0);
+      const total = qty * pu;
+      const taxAmt = total * (tax/100);
+      r.querySelector('.ln_total').textContent = fmt(total + taxAmt);
+      sub += total;
+      taxSum += taxAmt;
+    });
+    sum_sub.textContent = fmt(sub);
+    sum_tax.textContent = fmt(taxSum);
+    const discount = Number(inv_discount.value||0);
+    const total = sub + taxSum - discount;
+    sum_total.textContent = fmt(total);
+  }
+
+  /* ---------- Preview rendering ---------- */
+  function renderPreview(){
+    const logoData = logoDrop.dataset.img || '';
+    const company = $('#cfg_company').value || 'Entreprise';
+    const address = $('#cfg_address').value || '';
+    const num = inv_number.value || '';
+    const date = inv_date.value || todayISO();
+    const client = state.clients.find(c=>c.id === inv_client.value) || null;
+    // lines
+    const rows = Array.from(linesTableBody.querySelectorAll('tr'));
+    let html = `<div style='display:flex;justify-content:space-between;align-items:flex-start'><div><div style='font-weight:800;font-size:18px'>${company}</div><div class='small'>${address.replace(/\n/g,'<br/>')}</div></div><div style='text-align:right'>`;
+    if(logoData) html += `<img src='${logoData}' style='max-height:80px;max-width:220px;border-radius:8px'/>`;
+    html += `</div></div><hr/>`;
+    html += `<div style='display:flex;justify-content:space-between'><div><strong>Facturer à</strong><div class='small'>${client?client.name:'-'}</div><div class='small'>${client?client.address||'':''}</div></div><div style='text-align:right'><div class='small'>Facture: ${num}</div><div class='small'>Date: ${date}</div></div></div>`;
+    html += `<table style='width:100%;margin-top:12px'><thead><tr><th>Description</th><th>Qté</th><th>PU</th><th>TVA</th><th class='right'>Total</th></tr></thead><tbody>`;
+    let sub=0, taxSum=0;
+    rows.forEach(r=>{
+      const desc = r.querySelector('.ln_desc').value;
+      const qty = Number(r.querySelector('.ln_qty').value||0);
+      const pu = Number(r.querySelector('.ln_pu').value||0);
+      const tax = Number(r.querySelector('.ln_tax').value||0);
+      const total = qty*pu; const taxAmt = total*(tax/100);
+      html += `<tr><td>${desc}</td><td>${qty}</td><td>${fmt(pu)}</td><td>${tax}%</td><td class='right'>${fmt(total+taxAmt)}</td></tr>`;
+      sub += total; taxSum += taxAmt;
+    });
+    const discount = Number(inv_discount.value||0);
+    const totalTTC = sub + taxSum - discount;
+    html += `</tbody></table>`;
+    html += `<div style='display:flex;justify-content:flex-end;margin-top:12px'><div style='width:320px;background:#fff;padding:10px;border-radius:8px;border:1px solid #eef2f7'><div style='display:flex;justify-content:space-between'><div class='small'>Sous-total</div><div>${fmt(sub)}</div></div><div style='display:flex;justify-content:space-between;margin-top:6px'><div class='small'>TVA</div><div>${fmt(taxSum)}</div></div><div style='display:flex;justify-content:space-between;margin-top:6px'><div class='small'>Remise</div><div>${fmt(discount)}</div></div><hr/><div style='display:flex;justify-content:space-between;font-weight:800'><div>Total TTC</div><div>${fmt(totalTTC)}</div></div></div></div>`;
+
+    // barcode and QR
+    const barcodeId = 'bc_' + Math.random().toString(36).slice(2,6);
+    const qrId = 'qr_' + Math.random().toString(36).slice(2,6);
+    html += `<div style='display:flex;justify-content:space-between;align-items:center;margin-top:12px'><div><canvas id='${qrId}'></canvas></div><div id='${barcodeId}'></div></div>`;
+
+    preview.innerHTML = html;
+    // create barcode & qr
+    try{ JsBarcode(`#${barcodeId}`, num || '000000', {format:'CODE128', width:2, height:36, displayValue:true}); }catch(e){}
+    // QR
+    const qrData = $('#qrText').value || ('facture:'+num+' total:'+fmt(totalTTC));
+    try{ new QRious({element: document.getElementById(qrId), value: qrData, size: 100}); }catch(e){}
+    // signature
+    const sigData = sigWrap.dataset.sig || null;
+    if(sigData){ preview.innerHTML += `<div style='margin-top:12px'>Signature:<br/><img src='${sigData}' style='max-height:120px;border:1px solid #eef2f7;border-radius:6px'/></div>`; }
+  }
+
+  /* ---------- Exports: PDF / Word / Excel / JSON ---------- */
+  async function exportPDF(){
+    // render preview as image then pdf
+    const el = preview;
+    const canvas = await html2canvas(el, {scale:2});
+    const img = canvas.toDataURL('image/png');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p','pt','a4');
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const imgW = canvas.width; const imgH = canvas.height;
+    const ratio = Math.min(pageW/imgW, pageH/imgH);
+    const w = imgW * ratio; const h = imgH * ratio;
+    pdf.addImage(img,'PNG', (pageW-w)/2, 20, w, h);
+    pdf.save((inv_number.value||'facture') + '.pdf');
+  }
+  function exportWord(){
+    const html = `<html><head><meta charset='utf-8'><title>${inv_number.value||'facture'}</title></head><body>${preview.innerHTML}</body></html>`;
+    const blob = new Blob([html], {type:'application/msword'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = (inv_number.value||'facture') + '.doc'; document.body.appendChild(a); a.click(); a.remove();
+  }
+  function exportXlsx(){
+    const wb = XLSX.utils.book_new();
+    const rows = [['Facture', inv_number.value||''], ['Date', inv_date.value||todayISO()], []];
+    rows.push(['Description','Qté','PU','TVA','Total']);
+    Array.from(linesTableBody.querySelectorAll('tr')).forEach(r=>{
+      const desc = r.querySelector('.ln_desc').value;
+      const qty = r.querySelector('.ln_qty').value;
+      const pu = r.querySelector('.ln_pu').value;
+      const tax = r.querySelector('.ln_tax').value;
+      const total = Number(qty)*Number(pu)*(1+Number(tax)/100);
+      rows.push([desc, qty, pu, tax, total]);
+    });
+    rows.push([]);
+    rows.push(['Sous-total', sum_sub.textContent]);
+    rows.push(['TVA', sum_tax.textContent]);
+    rows.push(['Total', sum_total.textContent]);
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb, ws, 'Facture');
+    XLSX.writeFile(wb, (inv_number.value||'facture') + '.xlsx');
+  }
+  function exportJSON(){
+    const data = buildInvoiceObject();
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = (inv_number.value||'facture') + '.json'; document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  /* ---------- Build invoice object ---------- */
+  function buildInvoiceObject(){
+    const client = state.clients.find(c=>c.id === inv_client.value) || null;
+    const lines = Array.from(linesTableBody.querySelectorAll('tr')).map(r=>({
+      description: r.querySelector('.ln_desc').value,
+      qty: Number(r.querySelector('.ln_qty').value||0),
+      pu: Number(r.querySelector('.ln_pu').value||0),
+      tax: Number(r.querySelector('.ln_tax').value||0)
+    }));
+    const sub = Number(sum_sub.textContent.replace(/\s/g,''))||0;
+    const tax = Number(sum_tax.textContent.replace(/\s/g,''))||0;
+    const total = Number(sum_total.textContent.replace(/\s/g,''))||0;
+    return {
+      id: uid('inv'), number: inv_number.value, date: inv_date.value, company: {name: document.getElementById('cfg_company').value, address: document.getElementById('cfg_address').value}, client, lines, sub, tax, total, logo: logoDrop.dataset.img || null, signature: sigWrap.dataset.sig || null
+    }
+  }
+
+  /* ---------- Logo drag & drop ---------- */
+  logoDrop.addEventListener('click', ()=>logoInput.click());
+  logoInput.addEventListener('change', ev=>{ const f = ev.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ()=>{ logoDrop.style.backgroundImage = `url(${r.result})`; logoDrop.style.backgroundSize='contain'; logoDrop.style.backgroundRepeat='no-repeat'; logoDrop.style.backgroundPosition='center'; logoDrop.dataset.img = r.result; }; r.readAsDataURL(f); });
+  logoDrop.addEventListener('dragover', e=>{ e.preventDefault(); logoDrop.style.borderColor = '#0ea5e9'; });
+  logoDrop.addEventListener('dragleave', e=>{ logoDrop.style.borderColor = '#e6eef8'; });
+  logoDrop.addEventListener('drop', e=>{ e.preventDefault(); logoDrop.style.borderColor = '#e6eef8'; const f = e.dataTransfer.files[0]; if(!f) return; const r = new FileReader(); r.onload = ()=>{ logoDrop.style.backgroundImage = `url(${r.result})`; logoDrop.style.backgroundSize='contain'; logoDrop.style.backgroundRepeat='no-repeat'; logoDrop.style.backgroundPosition='center'; logoDrop.dataset.img = r.result; }; r.readAsDataURL(f); });
+
+  /* ---------- Signature capture using canvas ---------- */
+  (function setupSignature(){
+    const canvas = document.createElement('canvas'); canvas.width = 400; canvas.height = 120; canvas.style.width='100%'; canvas.style.height='100%'; canvas.style.borderRadius='8px'; canvas.style.cursor='crosshair'; sigWrap.innerHTML=''; sigWrap.appendChild(canvas);
+    const ctx = canvas.getContext('2d'); ctx.strokeStyle='#000'; ctx.lineWidth=2; ctx.lineCap='round'; let drawing=false; function resize(){ const rect = sigWrap.getBoundingClientRect(); canvas.width = 400; canvas.height = 120; }
+    canvas.addEventListener('mousedown', e=>{ drawing=true; ctx.beginPath(); ctx.moveTo(e.offsetX, e.offsetY); });
+    canvas.addEventListener('mousemove', e=>{ if(!drawing) return; ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke(); });
+    window.addEventListener('mouseup', ()=>{ if(drawing){ drawing=false; sigWrap.dataset.sig = canvas.toDataURL('image/png'); } });
+    // clear button
+    const btn = document.createElement('button'); btn.className='ghost'; btn.textContent='Effacer'; btn.style.marginLeft='8px'; sigWrap.appendChild(btn);
+    btn.addEventListener('click', ()=>{ ctx.clearRect(0,0,canvas.width,canvas.height); delete sigWrap.dataset.sig; });
+  })();
+
+  /* ---------- Event wiring ---------- */
+  document.getElementById('btn-add-client').addEventListener('click', ()=>showClientEditor());
+  document.getElementById('btn-add-product').addEventListener('click', ()=>showProductEditor());
+
+  clientsList.addEventListener('click', async (e)=>{
+    if(e.target.classList.contains('select-client')){ const id = e.target.dataset.id; inv_client.value = id; inv_client.dispatchEvent(new Event('change')); }
+    if(e.target.classList.contains('edit-client')){ const id = e.target.dataset.id; const c = state.clients.find(x=>x.id===id); showClientEditor(c); }
+  });
+  productsList.addEventListener('click', async (e)=>{
+    if(e.target.classList.contains('select-product')){ const id = e.target.dataset.id; const p = state.products.find(x=>x.id===id); addLine({description: p.name, qty:1, pu:p.pu, tax:p.tax}); }
+    if(e.target.classList.contains('edit-product')){ const id = e.target.dataset.id; const p = state.products.find(x=>x.id===id); showProductEditor(p); }
+  });
+
+  inv_client.addEventListener('change', ()=>{
+    const c = state.clients.find(x=>x.id===inv_client.value);
+    document.getElementById('inv_client_addr').textContent = c ? (c.address || '') : '';
+  });
+
+  document.getElementById('btn-add-line').addEventListener('click', ()=>addLine({description:'',qty:1,pu:0,tax:document.getElementById('cfg_tax').value||10}));
+  document.getElementById('btn-quick-add').addEventListener('click', ()=>{
+    const q = document.getElementById('quickAdd').value.trim(); if(!q) return;
+    if(q.includes('|')){
+      const [d, qn, pu] = q.split('|').map(s=>s.trim()); addLine({description:d, qty:Number(qn||1), pu:Number(pu||0), tax:document.getElementById('cfg_tax').value||10});
+    } else {
+      const found = productSearch(q);
+      if(found.length>0) addLine({description:found[0].name, qty:1, pu:found[0].pu, tax:found[0].tax}); else addLine({description:q, qty:1, pu:0, tax:document.getElementById('cfg_tax').value||10});
+    }
+    document.getElementById('quickAdd').value='';
+  });
+
+  // compute on discount change
+  inv_discount.addEventListener('input', computeTotals);
+
+  document.getElementById('btn-generate-preview').addEventListener('click', ()=>{ computeTotals(); renderPreview(); alert('Aperçu mis à jour'); });
+  document.getElementById('btn-download-pdf').addEventListener('click', ()=>{ computeTotals(); renderPreview(); exportPDF(); });
+  document.getElementById('btn-download-word').addEventListener('click', ()=>{ computeTotals(); renderPreview(); exportWord(); });
+  document.getElementById('btn-download-xlsx').addEventListener('click', ()=>{ computeTotals(); renderPreview(); exportXlsx(); });
+  document.getElementById('btn-export-json').addEventListener('click', exportJSON);
+
+  // Settings
+  document.getElementById('btn-save-settings').addEventListener('click', async ()=>{ const s = {key:'settings', value:{company:document.getElementById('cfg_company').value,address:document.getElementById('cfg_address').value,tax:document.getElementById('cfg_tax').value,currency:document.getElementById('cfg_currency').value}}; await DB.put('meta', s); alert('Paramètres sauvegardés'); });
+  document.getElementById('btn-reset-settings').addEventListener('click', ()=>{ if(confirm('Réinitialiser les paramètres ?')){ document.getElementById('cfg_company').value='Mo-Djib Consulting'; document.getElementById('cfg_address').value='Rue Exemple, Djibouti'; document.getElementById('cfg_tax').value=10; document.getElementById('cfg_currency').value='DJF'; } });
+
+  // Export / Import DB
+  document.getElementById('btn-export-json').addEventListener('click', async ()=>{
+    const data = {clients: await DB.getAll('clients'), products: await DB.getAll('products'), invoices: await DB.getAll('invoices'), meta: state.meta};
+    const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='facturier_backup.json'; document.body.appendChild(a); a.click(); a.remove();
+  });
+  document.getElementById('btn-import-json').addEventListener('click', ()=>document.getElementById('fileImport').click());
+  document.getElementById('fileImport').addEventListener('change', async (e)=>{
+    const f = e.target.files[0]; if(!f) return; const txt = await f.text(); try{ const data = JSON.parse(txt); if(data.clients) for(const c of data.clients) await DB.put('clients', c); if(data.products) for(const p of data.products) await DB.put('products', p); alert('Import terminé'); await loadState(); }catch(err){alert('Erreur import: '+err.message)} });
+
+  // search filters
+  document.getElementById('searchClients').addEventListener('input', ()=>{ const q = document.getElementById('searchClients').value.toLowerCase(); clientsList.querySelectorAll('.list-item').forEach(li=>{ li.style.display = (li.textContent.toLowerCase().includes(q)?'flex':'none') }); });
+  document.getElementById('searchProducts').addEventListener('input', ()=>{ const q = document.getElementById('searchProducts').value.toLowerCase(); productsList.querySelectorAll('.list-item').forEach(li=>{ li.style.display = (li.textContent.toLowerCase().includes(q)?'flex':'none') }); });
+
+  // save draft / load draft (localStorage)
+  document.getElementById('btn-save-draft').addEventListener('click', ()=>{ const inv = buildInvoiceObject(); localStorage.setItem('facture_draft', JSON.stringify(inv)); alert('Brouillon enregistré'); });
+  document.getElementById('btn-load-draft').addEventListener('click', ()=>{ const raw = localStorage.getItem('facture_draft'); if(!raw) return alert('Aucun brouillon trouvé'); const inv = JSON.parse(raw); inv_number.value = inv.number||inv_number.value; inv_date.value = inv.date||inv_date.value; if(inv.client) inv_client.value = inv.client.id; linesTableBody.innerHTML=''; (inv.lines||[]).forEach(l=>addLine(l)); computeTotals(); renderPreview(); alert('Brouillon chargé'); });
+
+  // quick start: add sample client / product if DB empty
+  async function loadState(){ state.clients = (await DB.getAll('clients')) || []; state.products = (await DB.getAll('products')) || []; state.invoices = (await DB.getAll('invoices')) || []; // meta
+    const meta = (await DB.get('meta','settings')) || null; if(meta) state.meta = meta.value || {};
+    if(state.clients.length===0){ const c={id:uid('cli'), name:'Client Exemple', email:'client@example.com', phone:'+253-77-000000', address:'Rue Clientes, Djibouti'}; await DB.put('clients', c); }
+    if(state.products.length===0){ const p={id:uid('prd'), sku:'SVC-001', name:'Prestation A', pu:15000, tax:10}; await DB.put('products', p); }
+    state.clients = (await DB.getAll('clients')).sort((a,b)=>a.name.localeCompare(b.name)); state.products = (await DB.getAll('products')).sort((a,b)=>a.name.localeCompare(b.name)); renderClients(); renderProducts(); inv_date.value = todayISO(); document.getElementById('cfg_company').value = state.meta.company || document.getElementById('cfg_company').value; document.getElementById('cfg_address').value = state.meta.address || document.getElementById('cfg_address').value; document.getElementById('cfg_tax').value = state.meta.tax || document.getElementById('cfg_tax').value; computeTotals(); renderPreview(); }
+
+  // init
+  (async function(){ await DB.getAll('clients').catch(()=>{}); await loadMeta(); await loadState(); })();
+
+  </script>
+
+</body>
+</html>
