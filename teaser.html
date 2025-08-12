@@ -27,6 +27,7 @@
     flex-direction: column;
     color: #fff;
     text-align: center;
+    padding: 15px;
   }
 
   /* Texte incitatif */
@@ -64,9 +65,10 @@
   #formulaire {
     display: none;
     position: relative;
-    width: 400px;
+    width: 90%;
+    max-width: 400px;
     background: rgba(0,0,0,0.85);
-    padding: 30px;
+    padding: 20px;
     border-radius: 20px;
     box-shadow: 0 0 15px rgba(0,191,165,0.4);
     text-align: left;
@@ -97,6 +99,7 @@
     cursor: pointer;
     margin-top: 10px;
     transition: background 0.3s;
+    width: 100%;
   }
   #submitBtn:hover { background: #26c6da; }
 
@@ -123,6 +126,7 @@
     display: flex;
     justify-content: center;
     gap: 15px;
+    flex-wrap: wrap;
   }
 
   .social-link img {
@@ -136,6 +140,24 @@
   .social-link img:hover {
     transform: scale(1.2);
     box-shadow: 0px 0px 15px rgba(255,64,129,0.8);
+  }
+
+  /* Responsive mobile */
+  @media (max-width: 500px) {
+    .btn {
+      font-size: 18px;
+      padding: 12px 25px;
+    }
+
+    #formulaire {
+      padding: 15px;
+      border-radius: 15px;
+    }
+
+    input, #submitBtn {
+      font-size: 16px;
+      padding: 10px;
+    }
   }
 </style>
 </head>
