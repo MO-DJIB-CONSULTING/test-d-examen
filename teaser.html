@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LIMO - Inscription</title>
+  <style>
+    body, html { margin:0; padding:0; height:100%; overflow:hidden; font-family: Arial, sans-serif; }
+    video {
+      position: fixed; top:0; left:0;
+      width:100%; height:100%;
+      object-fit: cover;
+      z-index: -1;
+    }
+    .overlay {
+      position: absolute; top:0; left:0;
+      width:100%; height:100%;
+      display:flex; justify-content:center; align-items:center;
+      background: rgba(0,0,0,0.4); flex-direction:column;
+      color:#fff;
+    }
+    .btn {
+      background:#ff4081; padding:15px 30px;
+      font-size:24px; color:#fff; border:none;
+      border-radius:50px; cursor:pointer;
+      box-shadow:0px 4px 10px rgba(0,0,0,0.3);
+      transition:0.3s;
+    }
+    .btn:hover { background:#ff77a9; }
+    #formulaire {
+      display:none; margin-top:20px;
+      background:rgba(0,0,0,0.7); padding:20px;
+      border-radius:10px;
+      text-align:left;
+    }
+    input {
+      width:100%; padding:10px; margin:8px 0;
+      border:none; border-radius:5px;
+    }
+    #submitBtn {
+      background:#00bfa5; color:#fff;
+      padding:12px; width:100%;
+      border:none; border-radius:5px;
+      font-size:18px;
+      cursor:pointer;
+      margin-top:10px;
+    }
+    #submitBtn:hover { background:#26c6da; }
+    #message {
+      margin-top:10px; font-size:1em;
+    }
+  </style>
+</head>
+<body>
+  <video autoplay muted loop playsinline>
+    <source src="https://raw.githubusercontent.com/MO-DJIB-CONSULTING/test-d-examen/main/Black%20Neon%20Coming%20Soon%20Video%20(3).mp4" type="video/mp4">
+  </video>
+  <div class="overlay">
+    <button id="inscrireBtn" class="btn">Inscrivez-vous</button>
+    <form id="formulaire">
+      <input type="text" id="nom" placeholder="Nom" required />
+      <input type="text" id="prenom" placeholder="Prénom" required />
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="tel" id="telephone" placeholder="Téléphone" required />
+      <button id="submitBtn" type="submit">Envoyer</button>
+      <div id="message"></div>
+    </form>
+  </div>
+
+  <script>
+    const inscrireBtn = document.getElementById("inscrireBtn");
+    const formulaire = document.getElementById("formulaire");
+    const message = document.getElementById("message");
+
+    inscrireBtn.addEventListener("click", () => {
+      inscrireBtn.style.display = "none";
+      formulaire.style.display = "block";
+    });
+
+    formulaire.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const data = {
+        nom: document.getElementById("nom").value,
+        prenom: document.getElementById("prenom").value,
+        email: document.getElementById("email").value,
+        telephone: document.getElementById("telephone").value
+      };
+
+      fetch("https://script.google.com/macros/s/AKfycbzEHt92xFTWGxoRbybdCgCrBTokdz4chfjKga1CZz7JsdJGerQc20oI_LuzirGaX_NECA/exec", {
+        method: "POST",
+        body: JSON.stringify(data)
+      })
+      .then(res => res.json())
+      .then(response => {
+        if (response.result === "success") {
+          message.style.color = "lightgreen";
+          message.textContent = "✅ Inscription réussie ! Merci.";
+          formulaire.reset();
+        } else {
+          message.style.color = "salmon";
+          message.textContent = "❌ Erreur, réessayez.";
+        }
+      })
+      .catch(() => {
+        message.style.color = "salmon";
+        message.textContent = "❌ Impossible de contacter le serveur.";
+      });
+    });
+  </script>
+</body>
+</html>
